@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.controllers import pdf_controller  
 
 app = FastAPI()
+
 # Allow CORS for all origins
 app.add_middleware(
     CORSMiddleware,
@@ -9,6 +11,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.include_router(
+    pdf_controller.router,
+    prefix="/api",
+    tags=["upload files"],
 )
 
 @app.get("/")
