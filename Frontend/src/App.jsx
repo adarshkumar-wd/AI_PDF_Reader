@@ -2,23 +2,28 @@ import React, { useState } from 'react'
 import { CiSquarePlus } from "react-icons/ci";
 import { VscSend } from "react-icons/vsc";
 import axios from "axios"
-""
+import {WavyPulses} from "spinny-loader"
+
 
 function App() {
 
   const [isImageUpload, setIsImageUpload] = useState(false);
   const [question, setQuestion] = useState("");
   const [fileName, setFileName] = useState("");
-  const [chats, setChats] = useState([{}]);
+  const [chats, setChats] = useState([]);
+  const [chatLoader, setchatLoader] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
-    setChats((prev) => [...prev , {"chat" : question , "sender" : "user"}])
+    setchatLoader(true)
+    setChats((prev) => [...prev, { "chat": question, "sender": "user" }])
+    setChats((prev) => [...prev, { "loading" : true , "chat": "", "sender": "ai" }])
 
     const response = await axios.post("http://localhost:8000/api/ask-question", { question: question });
-    console.log(response.data.answer)
-    setChats((prev) => [...prev , {"chat" : response?.data?.answer , "sender" : "ai"}])
+    // console.log(response.data.answer)
+    setchatLoader(false)
+    chats.pop()
+    setChats((prev) => [...prev.slice(0 , -1), { "question" : question , "chat": response?.data?.answer, "sender": "ai" }])
     setQuestion("");
   }
 
@@ -71,15 +76,32 @@ function App() {
 
       <section className='w-full h-[80%] px-3 py-4'>
 
-        <div className='flex gap-4 items-center w-full'>
+        {
+          chats.map((msg, index) => (
+            <div
+              key={index}
+              className={`flex w-full mb-4 rounded-md gap-4 items-center ${msg.sender === 'user' ? 'justify-end' : 'justify-start'
+                }`}
+            >
+              {/* Avatar circle */}
+              {msg.sender === 'ai' && (
+                <div className='w-[30px] h-[30px] rounded-full bg-green-500'></div>
+              )}
+              {msg.sender === 'user' && (
+                <div className='w-[30px] h-[30px] rounded-full bg-blue-500'></div>
+              )}
 
-          <div className='w-[30px] h-[30px] rounded-full bg-green-500'></div>
+              {/* Chat message */}
+              <p
+                className={`px-3 py-2 max-w-[60%] h-fit leading-[18px] rounded-md ${msg.sender === 'ai' ? 'bg-gray-100 text-left' : 'bg-blue-100 text-right'
+                  } ${msg?.loading ? "bg-white" : ""}`}
+              >
+                {msg?.loading ? <WavyPulses /> : msg?.chat}
+              </p>
+            </div>
+          ))
+        }
 
-          <p className='max-w-[60%] h-fit bg-gray-100 leading-[18px] '>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Necessitatibus, dolorem?
-          </p>
-
-        </div>
 
       </section>
 
@@ -97,7 +119,7 @@ function App() {
             value={question}
           />
 
-          <button onClick={() => handleSubmit(e)}>
+          <button onClick={(e) => handleSubmit(e)}>
             <VscSend className='' />
           </button>
 
