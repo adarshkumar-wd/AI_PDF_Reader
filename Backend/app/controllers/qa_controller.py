@@ -13,11 +13,7 @@ class QuestionRequest(BaseModel):
 router = APIRouter()
 
 # Load FAISS index
-vector_store = FAISS.load_local(
-    "faiss_index",
-    HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2"),
-    allow_dangerous_deserialization=True
-)
+
 
 # Load transformers pipeline locally
 qa_pipeline = pipeline(
@@ -35,6 +31,13 @@ qa_chain = load_qa_chain(llm, chain_type="stuff")
 @router.post("/ask-question")
 async def ask_question(data: QuestionRequest):
     try:
+
+        vector_store = FAISS.load_local(
+            "faiss_index",
+            HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2"),
+            allow_dangerous_deserialization=True
+        )
+        
         docs = vector_store.similarity_search(data.question, k=3)
         response = qa_chain.run(input_documents=docs, question=data.question)
         return {"answer": response}
