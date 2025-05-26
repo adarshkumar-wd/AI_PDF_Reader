@@ -13,8 +13,12 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    setChats((prev) => [...prev , {"chat" : question , "sender" : "user"}])
+
     const response = await axios.post("http://localhost:8000/api/ask-question", { question: question });
     console.log(response.data.answer)
+    setChats((prev) => [...prev , {"chat" : response?.data?.answer , "sender" : "ai"}])
     setQuestion("");
   }
 
@@ -65,7 +69,17 @@ function App() {
         </div>
       </nav>
 
-      <section className='w-full min-h-[80%] bg--100'>
+      <section className='w-full h-[80%] px-3 py-4'>
+
+        <div className='flex gap-4 items-center w-full'>
+
+          <div className='w-[30px] h-[30px] rounded-full bg-green-500'></div>
+
+          <p className='max-w-[60%] h-fit bg-gray-100 leading-[18px] '>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Necessitatibus, dolorem?
+          </p>
+
+        </div>
 
       </section>
 
@@ -80,9 +94,10 @@ function App() {
             placeholder='Enter a message...'
             className='w-full outline-none px-2 py-1 font-light'
             onChange={(e) => setQuestion(e.target.value)}
+            value={question}
           />
 
-          <button onClick={handleSubmit}>
+          <button onClick={() => handleSubmit(e)}>
             <VscSend className='' />
           </button>
 
