@@ -3,6 +3,8 @@ import { CiSquarePlus } from "react-icons/ci";
 import { VscSend } from "react-icons/vsc";
 import axios from "axios"
 import {WavyPulses} from "spinny-loader"
+import {WavyBars} from 'spinny-loader'
+import {ScalingPulses} from 'spinny-loader'
 
 
 function App() {
@@ -11,18 +13,18 @@ function App() {
   const [question, setQuestion] = useState("");
   const [fileName, setFileName] = useState("");
   const [chats, setChats] = useState([]);
-  const [chatLoader, setchatLoader] = useState(false)
+  const [fileUploadingLoader, setFileUploadingLoader] = useState(false)
 
   const handleSubmit = async (e) => {
+    
     e.preventDefault()
-    setchatLoader(true)
+
     setChats((prev) => [...prev, { "chat": question, "sender": "user" }])
     setChats((prev) => [...prev, { "loading" : true , "chat": "", "sender": "ai" }])
 
     const response = await axios.post("http://localhost:8000/api/ask-question", { question: question });
     // console.log(response.data.answer)
-    setchatLoader(false)
-    chats.pop()
+    
     setChats((prev) => [...prev.slice(0 , -1), { "question" : question , "chat": response?.data?.answer, "sender": "ai" }])
     setQuestion("");
   }
@@ -32,17 +34,20 @@ function App() {
 
     const file = e.target.files[0];
     if (!file) return;
-    setFileName(file.name)
+    
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
+      setFileUploadingLoader(true)
       const response = await axios.post("http://localhost:8000/api/upload-pdf", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+      setFileUploadingLoader(false)
+      setFileName(file.name)
 
       console.log("Upload successful:", response.data);
     } catch (error) {
@@ -52,19 +57,19 @@ function App() {
 
   return (
     <div className='h-screen'>
-
+      
       <nav className='w-full h-[10%] flex py-3 px-2 justify-between items-center shadow-lg'>
 
         {/* logo */}
 
         <div className='w-[20%]'>
-          <img className='' src="https://static.swapcard.com/public/images/c5314c79a3d74b5eb0672dd534babac5.png" alt="" />
+          <img className='md:w-[10rem]' src="https://static.swapcard.com/public/images/c5314c79a3d74b5eb0672dd534babac5.png" alt="" />
         </div>
 
         <div className='flex gap-4 items-center'>
           {/* upload Immage option */}
 
-          <p className='font-semibold text-[.7rem] text-green-500'>{fileName}</p>
+          <p className='font-semibold text-[.7rem] text-green-500 md:text-[1rem]'>{fileUploadingLoader ? <ScalingPulses color={"green"} size={"7px"} /> : fileName}</p>
           <label className='font-bold text-3xl' htmlFor="file"><CiSquarePlus /></label>
 
           <div>
@@ -96,7 +101,7 @@ function App() {
                 className={`px-3 py-2 max-w-[60%] h-fit leading-[18px] rounded-md ${msg.sender === 'ai' ? 'bg-gray-100 text-left' : 'bg-blue-100 text-right'
                   } ${msg?.loading ? "bg-white" : ""}`}
               >
-                {msg?.loading ? <WavyPulses /> : msg?.chat}
+                {msg?.loading ? <WavyPulses size='7px' color={"green"}/> : msg?.chat}
               </p>
             </div>
           ))

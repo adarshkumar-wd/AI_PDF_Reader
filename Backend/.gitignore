@@ -30,3 +30,4 @@ reload/
 # Any other system files
 *.bak
 *.swp
+faiss_index
